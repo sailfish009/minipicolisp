@@ -10,6 +10,9 @@
 #include <errno.h>
 #include <setjmp.h>
 #include <stdint.h>
+#include <cstring>
+#include <stdexcept>
+#include <vector>
 
 #define __attribute__(X)
 
@@ -24,6 +27,8 @@ typedef unsigned long word;
 typedef unsigned char byte;
 typedef unsigned char *ptr;
 
+using size_t = decltype(sizeof(int));
+
 typedef enum {NO,YES} be;
 
 typedef struct cell {            // PicoLisp primary data type
@@ -32,6 +37,13 @@ typedef struct cell {            // PicoLisp primary data type
 } cell, *any;
 
 typedef any (*fun)(any);
+
+using vec = std::vector<cell>;
+using str = std::vector<char>;
+using strr = std::vector<char*>;
+using arr = std::vector<int>;
+using sv = struct { any sym; any val; };
+
 
 #include "sym.d"
 
@@ -165,7 +177,7 @@ extern any const Rom[];
 extern any Ram[];
 
 /* Prototypes */
-void *alloc(void*,size_t);
+void *alloc(void*, size_t);
 any apply(any,any,be,int,cell*);
 void argError(any,any) __attribute__ ((noreturn));
 void atomError(any,any) __attribute__ ((noreturn));
@@ -283,12 +295,15 @@ static inline any getn(any x, any y) {
 }
 
 /* List length calculation */
-static inline int length(any x) {
-   int n;
-
-   for (n = 0; isCell(x); x = cdr(x))
-      ++n;
-   return n;
+static int n = 0;
+//static inline constexpr int length(any x) {
+static constexpr int length(any x) {
+  return isCell(x) ? ++n, isCell(x = cdr(x)) : n;
+#if 0
+  int n = 0;
+  for (n = 0; isCell(x); x = cdr(x) ) ++n;
+  return n;
+#endif
 }
 
 /* Membership */

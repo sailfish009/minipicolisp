@@ -211,7 +211,7 @@ be equal(any x, any y) {
       if (!isSymb(y))
          return NO;
       if ((x = name(x)) == (y = name(y)))
-         return x != txt(0);
+         return (be) (x != txt(0));
       if (isTxt(x) || isTxt(y))
          return NO;
       do {
@@ -219,7 +219,7 @@ be equal(any x, any y) {
             return NO;
          x = val(x),  y = val(y);
       } while (!isNum(x) && !isNum(y));
-      return x == y;
+      return be (x == y);
    }
    if (!isCell(y))
       return NO;
@@ -244,7 +244,7 @@ be equal(any x, any y) {
                   for (;;) {
                      a = cdr(a);
                      if ((b = cdr(b)) == y) {
-                        res = a == x;
+                        res = (be) (a == x);
                         break;
                      }
                      if (a == x) {
@@ -364,12 +364,14 @@ any doQuit(any x) {
 
    x = cdr(x),  y = evSym(x);
    {
-      char msg[bufSize(y)];
+      //char msg[bufSize(y)];
+     str msg(bufSize(y));
 
-      bufString(y, msg);
+     bufString(y, reinterpret_cast<char*>(&msg[0]));
       x = isCell(x = cdr(x))?  EVAL(car(x)) : NULL;
       err(NULL, x, "%s", msg);
    }
+   return x;
 }
 
 void argError(any ex, any x) {err(ex, x, "Bad argument");}
@@ -381,7 +383,7 @@ void lstError(any ex, any x) {err(ex, x, "List expected");}
 void varError(any ex, any x) {err(ex, x, "Variable expected");}
 void protError(any ex, any x) {err(ex, x, "Protected symbol");}
 
-void unwind(catchFrame *catch) {
+void unwind(catchFrame *cat) {
    any x;
    int i, j, n;
    bindFrame *p;
@@ -418,7 +420,7 @@ void unwind(catchFrame *catch) {
       Env = q->env;
       EVAL(q->fin);
       CatchPtr = q->link;
-      if (q == catch)
+      if (q == cat)
          return;
    }
    while (Env.bind) {
@@ -439,8 +441,10 @@ any evExpr(any expr, any x) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)+2];
+      sv *bnd;
+      //struct {any sym; any val;} bnd[length(y)+2];
    } f;
+   f.bnd = (sv*)malloc((length(y) + 2) * sizeof(sv));
 
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
    f.i = sizeof(f.bnd) / (2*sizeof(any)) - 1;
@@ -470,7 +474,9 @@ any evExpr(any expr, any x) {
    else {
       int n, cnt;
       cell *arg;
-      cell c[n = cnt = length(x)];
+      //cell c[n = cnt = length(x)];
+      n = cnt = length(x);
+      vec c(n);
 
       while (--n >= 0)
          Push(c[n], EVAL(car(x))),  x = cdr(x);
@@ -480,7 +486,7 @@ any evExpr(any expr, any x) {
          f.bnd[f.i].val = x;
       } while (f.i);
       n = Env.next,  Env.next = cnt;
-      arg = Env.arg,  Env.arg = c;
+      arg = Env.arg,  Env.arg = &c[0];
       x = prog(cdr(expr));
       if (cnt)
          drop(c[cnt-1]);
@@ -489,6 +495,7 @@ any evExpr(any expr, any x) {
    while (--f.cnt >= 0)
       val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
    Env.bind = f.link;
+   free(f.bnd);
    return x;
 }
 
@@ -728,7 +735,7 @@ int main(int ac, char *av[]) {
    if (ac >= 2 && strcmp(av[ac-2], "+") == 0)
       val(Dbg) = T,  av[ac-2] = NULL;
    if (av[0] && *av[0] != '-' && (p = strrchr(av[0], '/')) && !(p == av[0]+1 && *av[0] == '.')) {
-      Home = malloc(p - av[0] + 2);
+      Home = (char *)malloc(p - av[0] + 2);
       memcpy(Home, av[0], p - av[0] + 1);
       Home[p - av[0] + 1] = '\0';
    }

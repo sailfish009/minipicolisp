@@ -13,7 +13,11 @@ static word StrW;
 static void (*PutSave)(int);
 static char Delim[] = " \t\n\r\"'(),[]`~{}";
 
-static void openErr(any ex, char *s) {err(ex, NULL, "%s open: %s", s, strerror(errno));}
+size_t errlen = 256;
+char errmsg[256];
+
+//static void openErr(any ex, char *s) {err(ex, NULL, "%s open: %s", s, strerror(errno));}
+static void openErr(any ex, char *s) {err(ex, NULL, "%s open: %s", s, strerror_s(errmsg, errlen, errno)); }
 static void eofErr(void) {err(NULL, NULL, "EOF Overrun");}
 
 /* Buffer size */
@@ -71,10 +75,10 @@ void pathString(any x, char *p) {
 any doPath(any x) {
    x = evSym(cdr(x));
    {
-      char nm[pathSize(x)];
-
-      pathString(x,nm);
-      return mkStr(nm);
+      //char nm[pathSize(x)];
+     str nm(pathSize(x));
+     pathString(x, reinterpret_cast<char*>(&nm[0]));
+      return mkStr(reinterpret_cast<char*>(&nm[0]));
    }
 }
 
@@ -83,16 +87,17 @@ void rdOpen(any ex, any x, inFrame *f) {
    if (isNil(x))
       f->fp = stdin;
    else {
-      char nm[pathSize(x)];
+      //char nm[pathSize(x)];
+      str nm(pathSize(x));
 
-      pathString(x,nm);
+      pathString(x,reinterpret_cast<char*>(&nm[0]));
       if (nm[0] == '+') {
-         if (!(f->fp = fopen(nm+1, "a+")))
-            openErr(ex, nm);
+         if (fopen_s(&f->fp, reinterpret_cast<char*>(&nm[1]), "a+"))
+            openErr(ex, reinterpret_cast<char*>(&nm[0]));
          fseek(f->fp, 0L, SEEK_SET);
       }
-      else if (!(f->fp = fopen(nm, "r")))
-         openErr(ex, nm);
+      else if ( fopen_s(&f->fp, reinterpret_cast<char*>(&nm[0]), "r"))
+         openErr(ex, reinterpret_cast<char*>(&nm[0]));
    }
 }
 
@@ -101,15 +106,16 @@ void wrOpen(any ex, any x, outFrame *f) {
    if (isNil(x))
       f->fp = stdout;
    else {
-      char nm[pathSize(x)];
+      //char nm[pathSize(x)];
+      str nm(pathSize(x));
 
-      pathString(x,nm);
+      pathString(x,reinterpret_cast<char*>(&nm[0]));
       if (nm[0] == '+') {
-         if (!(f->fp = fopen(nm+1, "a")))
-            openErr(ex, nm);
+         if (fopen_s(&f->fp, reinterpret_cast<char*>(&nm[1]), "a"))
+            openErr(ex, reinterpret_cast<char*>(&nm[0]));
       }
-      else if (!(f->fp = fopen(nm, "w")))
-         openErr(ex, nm);
+      else if ( fopen_s(&f->fp, reinterpret_cast<char*>(&nm[0]), "w"))
+         openErr(ex, reinterpret_cast<char*>(&nm[0]));
    }
 }
 
@@ -426,16 +432,17 @@ any token(any x, int c) {
       return symToNum(tail(popSym(i, w, p, &c1)), (int)unBox(val(Scl)), '.', 0);
    }
    if (Chr != '+' && Chr != '-') {
-      char nm[bufSize(x)];
+      //char nm[bufSize(x)];
+      str nm(pathSize(x));
 
-      bufString(x, nm);
-      if (Chr >= 'A' && Chr <= 'Z' || Chr == '\\' || Chr >= 'a' && Chr <= 'z' || strchr(nm,Chr)) {
+      bufString(x, reinterpret_cast<char*>(&nm[0]));
+      if (Chr >= 'A' && Chr <= 'Z' || Chr == '\\' || Chr >= 'a' && Chr <= 'z' || strchr(reinterpret_cast<char*>(&nm[0]),Chr)) {
          if (Chr == '\\')
             Env.get();
          putByte1(Chr, &i, &w, &p);
          while (Env.get(),
                Chr >= '0' && Chr <= '9' || Chr >= 'A' && Chr <= 'Z' ||
-               Chr == '\\' || Chr >= 'a' && Chr <= 'z' || strchr(nm,Chr) ) {
+               Chr == '\\' || Chr >= 'a' && Chr <= 'z' || strchr(reinterpret_cast<char*>(&nm[0]),Chr) ) {
             if (Chr == '\\')
                Env.get();
             putByte(Chr, &i, &w, &p, &c1);
@@ -537,15 +544,18 @@ any doEof(any x) {
 
 // (from 'any ..) -> sym
 any doFrom(any x) {
-   int i, j, ac = length(x = cdr(x)), p[ac];
-   cell c[ac];
-   char *av[ac];
+  int i, j, ac = length(x = cdr(x)); 
+   //cell c[ac];
+   //char *av[ac];
+  vec c(ac);
+  arr p(ac);
+  strr av(ac);
 
    if (ac == 0)
       return Nil;
    for (i = 0;;) {
       Push(c[i], evSym(x));
-      av[i] = alloc(NULL, bufSize(data(c[i]))),  bufString(data(c[i]), av[i]);
+      av[i] = (char*)alloc(NULL, bufSize(data(c[i]))),  bufString(data(c[i]), av[i]);
       p[i] = 0;
       if (++i == ac)
          break;
@@ -557,7 +567,8 @@ any doFrom(any x) {
       for (i = 0; i < ac; ++i) {
          for (;;) {
             if (av[i][p[i]] == (byte)Chr) {
-               if (av[i][++p[i]])
+              p[i] += 1;
+               if (av[i][p[i]])
                   break;
                Env.get();
                x = data(c[i]);
@@ -566,7 +577,7 @@ any doFrom(any x) {
             if (!p[i])
                break;
             for (j = 1; --p[i]; ++j)
-               if (memcmp(av[i], av[i]+j, p[i]) == 0)
+               if (memcmp(&av[i], &av[i]+j, p[i]) == 0)
                   break;
          }
       }
@@ -590,22 +601,23 @@ any doTill(any ex) {
 
    x = evSym(cdr(ex));
    {
-      char buf[bufSize(x)];
+      //char buf[bufSize(x)];
+      str buf(bufSize(x));
 
-      bufString(x, buf);
+      bufString(x, &buf[0]);
       if (!Chr)
          Env.get();
-      if (Chr < 0 || strchr(buf,Chr))
+      if (Chr < 0 || strchr(&buf[0],Chr))
          return Nil;
       x = cddr(ex);
       if (isNil(EVAL(car(x)))) {
          Push(c1, x = cons(mkChar(Chr), Nil));
-         while (Env.get(), Chr > 0 && !strchr(buf,Chr))
+         while (Env.get(), Chr > 0 && !strchr(&buf[0],Chr))
             x = cdr(x) = cons(mkChar(Chr), Nil);
          return Pop(c1);
       }
       putByte1(Chr, &i, &w, &x);
-      while (Env.get(), Chr > 0 && !strchr(buf,Chr))
+      while (Env.get(), Chr > 0 && !strchr(&buf[0],Chr))
          putByte(Chr, &i, &w, &x, &c1);
       return popSym(i, w, x, &c1);
    }
@@ -847,7 +859,8 @@ void outString(char *s) {
 }
 
 int bufNum(char buf[BITS/2], long n) {
-   return sprintf(buf, "%ld", n);
+   //return sprintf(buf, "%ld", n);
+   return sprintf_s(buf, sizeof(buf), "%ld", n);
 }
 
 void outNum(long n) {

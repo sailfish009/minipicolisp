@@ -58,8 +58,10 @@ any doEval(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(x)];
+         sv *bnd;
+         //struct {any sym; any val;} bnd[length(x)];
       } f;
+      f.bnd = (sv*)malloc( length(x)  * sizeof(sv));
 
       x = cdr(x),  x = EVAL(car(x));
       j = cnt = (int)unBox(y);
@@ -106,6 +108,8 @@ next:    x = cdr(x);
                p->bnd[i].val = y;
             }
       } while (--n);
+
+      free(f.bnd);
    }
    return Pop(c1);
 }
@@ -126,8 +130,10 @@ any doRun(any x) {
          struct {  // bindFrame
             struct bindFrame *link;
             int i, cnt;
-            struct {any sym; any val;} bnd[length(x)];
+            sv *bnd;
+            //struct {any sym; any val;} bnd[length(x)];
          } f;
+         f.bnd = (sv*)malloc((length(x) ) * sizeof(sv));
 
          x = cdr(x),  x = EVAL(car(x));
          j = cnt = (int)unBox(y);
@@ -174,6 +180,7 @@ next:       x = cdr(x);
                   p->bnd[i].val = y;
                }
          } while (--n);
+         free(f.bnd);
       }
       drop(c1);
    }
@@ -259,8 +266,10 @@ static any evMethod(any o, any expr, any x) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)+3];
+      sv *bnd;
+      //struct {any sym; any val;} bnd[length(y)+3];
    } f;
+   f.bnd = (sv*)malloc((length(y)+3 ) * sizeof(sv));
 
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
    f.i = sizeof(f.bnd) / (2*sizeof(any)) - 2;
@@ -296,7 +305,8 @@ static any evMethod(any o, any expr, any x) {
    else {
       int n, cnt;
       cell *arg;
-      cell c[n = cnt = length(x)];
+      n = cnt = length(x);
+      vec c(n);
 
       while (--n >= 0)
          Push(c[n], EVAL(car(x))),  x = cdr(x);
@@ -306,7 +316,7 @@ static any evMethod(any o, any expr, any x) {
          f.bnd[f.i].val = x;
       } while (f.i);
       n = Env.next,  Env.next = cnt;
-      arg = Env.arg,  Env.arg = c;
+      arg = Env.arg,  Env.arg = &c[0];
       f.bnd[f.cnt].sym = This,  f.bnd[f.cnt++].val = val(This),  val(This) = o;
       y = cls,  cls = Env.cls;  Env.cls = y;
       y = key,  key = Env.key;  Env.key = y;
@@ -319,6 +329,8 @@ static any evMethod(any o, any expr, any x) {
       val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
    Env.bind = f.link;
    Env.cls = cls,  Env.key = key;
+
+   free(f.bnd);
    return x;
 }
 
@@ -435,11 +447,12 @@ any doIsa(any ex) {
 // (method 'msg 'obj) -> fun
 any doMethod(any ex) {
    any x, y;
+   any ret;
 
    x = cdr(ex),  y = EVAL(car(x));
    x = cdr(x),  x = EVAL(car(x));
    TheKey = y;
-   return method(x)? : Nil;
+   return (ret = method(x) ) ? ret : Nil;
 }
 
 // (meth 'obj ..) -> any
@@ -592,8 +605,10 @@ any doBind(any ex) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(y)];
+         sv *bnd;
+         //struct {any sym; any val;} bnd[length(y)];
       } f;
+      f.bnd = (sv*)malloc((length(y)) * sizeof(sv));
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
       f.i = f.cnt = 0;
@@ -615,6 +630,7 @@ any doBind(any ex) {
       while (--f.cnt >= 0)
          val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
       Env.bind = f.link;
+      free(f.bnd);
       return x;
    }
 }
@@ -627,8 +643,10 @@ any doJob(any ex) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)];
+      sv *bnd;
+      //struct {any sym; any val;} bnd[length(y)];
    } f;
+   f.bnd = (sv*)malloc((length(y)) * sizeof(sv));
 
    Push(c1,y);
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
@@ -645,6 +663,7 @@ any doJob(any ex) {
       val(caar(y)) = f.bnd[f.cnt].val;
    }
    Env.bind = f.link;
+   free(f.bnd);
    return x;
 }
 
@@ -665,8 +684,10 @@ any doLet(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[(length(y)+1)/2];
+         sv* bnd;
+         //struct {any sym; any val;} bnd[(length(y)+1)/2];
       } f;
+      f.bnd = (sv*)malloc( ((length(y)+1)/2) * sizeof(sv));
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
       f.i = f.cnt = 0;
@@ -680,6 +701,7 @@ any doLet(any x) {
       while (--f.cnt >= 0)
          val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
       Env.bind = f.link;
+      free(f.bnd);
    }
    return x;
 }
@@ -715,8 +737,10 @@ any doUse(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(y)];
+         sv* bnd;
+         //struct {any sym; any val;} bnd[length(y)];
       } f;
+      f.bnd = (sv*)malloc( length(y) * sizeof(sv));
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
       f.i = f.cnt = 0;
@@ -729,6 +753,7 @@ any doUse(any x) {
       while (--f.cnt >= 0)
          val(f.bnd[f.cnt].sym) = f.bnd[f.cnt].val;
       Env.bind = f.link;
+      free(f.bnd);
    }
    return x;
 }
@@ -789,7 +814,7 @@ any doNor(any x) {
 any doXor(any x) {
    be f;
 
-   x = cdr(x),  f = isNil(EVAL(car(x))),  x = cdr(x);
+   x = cdr(x),  f = (be) (isNil(EVAL(car(x)))),  x = cdr(x);
    return  f ^ isNil(EVAL(car(x)))?  T : Nil;
 }
 
@@ -1418,5 +1443,6 @@ any doTrace(any x) {
 any doBye(any ex) {
    any x = EVAL(cadr(ex));
 
-   bye(isNil(x)? 0 : xNum(ex,x));
+  bye(isNil(x)? 0 : xNum(ex,x));
+  return x;
 }

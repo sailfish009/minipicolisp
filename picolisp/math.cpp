@@ -137,7 +137,7 @@ any doFormat(any ex) {
    }
    data(c1) = isNum(data(c1))?
       numToSym(data(c1), scl, sep, ign) :
-      symToNum(name(data(c1)), scl, sep, ign) ?: Nil;
+      symToNum(name(data(c1)), scl, sep, ign) ?0: Nil;
    return Pop(c1);
 }
 

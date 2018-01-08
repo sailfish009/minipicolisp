@@ -455,7 +455,7 @@ any doDelete(any ex) {
 
    x = cdr(ex),  Push(c1, y = EVAL(car(x)));
    x = cadr(x),  x = EVAL(x);
-   flg = !isNil(EVAL(cadddr(ex)));
+   flg = (be) (!isNil(EVAL(cadddr(ex))));
    for (;;) {
       if (!isCell(x)) {
          drop(c1);
@@ -494,7 +494,7 @@ any doDelq(any ex) {
 
    x = cdr(ex),  Push(c1, y = EVAL(car(x)));
    x = cadr(x),  x = EVAL(x);
-   flg = !isNil(EVAL(cadddr(ex)));
+   flg = (be)( !isNil(EVAL(cadddr(ex))));
    for (;;) {
       if (!isCell(x)) {
          drop(c1);
@@ -529,7 +529,9 @@ any doDelq(any ex) {
 any doReplace(any x) {
    any y;
    int i, n = length(cdr(x = cdr(x))) + 1 & ~1;
-   cell c1, c2, c[n];
+   //cell c1, c2, c[n];
+   cell c1, c2;   
+   vec c(n);
 
    if (!isCell(data(c1) = EVAL(car(x))))
       return data(c1);
@@ -567,7 +569,9 @@ any doStrip(any x) {
 any doSplit(any x) {
    any y;
    int i, n = length(cdr(x = cdr(x)));
-   cell c1, c[n], res, sub;
+   //cell c1, c[n], res, sub;
+   cell c1, res, sub;
+   vec c(n);
 
    if (!isCell(data(c1) = EVAL(car(x))))
       return data(c1);
@@ -746,7 +750,8 @@ any doTail(any ex) {
 // (stem 'lst 'any ..) -> lst
 any doStem(any x) {
    int i, n = length(cdr(x = cdr(x)));
-   cell c1, c[n];
+   cell c1; 
+   vec c(n);
 
    Push(c1, EVAL(car(x)));
    for (i = 0; i < n; ++i)
@@ -1009,7 +1014,7 @@ any doMember(any x) {
 
    x = cdr(x),  Push(c1, EVAL(car(x)));
    x = cdr(x),  x = EVAL(car(x));
-   return member(Pop(c1), x) ?: Nil;
+   return member(Pop(c1), x) ? x: Nil;
 }
 
 // (memq 'any 'lst) -> any
@@ -1018,7 +1023,7 @@ any doMemq(any x) {
 
    x = cdr(x),  Push(c1, EVAL(car(x)));
    x = cdr(x),  x = EVAL(car(x));
-   return memq(Pop(c1), x) ?: Nil;
+   return memq(Pop(c1), x) ? x: Nil;
 }
 
 // (mmeq 'lst 'lst) -> any
@@ -1306,6 +1311,7 @@ any doMatch(any x) {
 static any fill(any x, any s) {
    any y;
    cell c1;
+   any ret;
 
    if (isNum(x))
       return NULL;
@@ -1314,17 +1320,17 @@ static any fill(any x, any s) {
    if (car(x) == Up) {
       x = cdr(x);
       if (!isCell(y = EVAL(car(x))))
-         return fill(cdr(x), s) ?: cdr(x);
+         return (ret = fill(cdr(x), s)) ? ret: cdr(x);
       Push(c1, y);
       while (isCell(cdr(y)))
          y = cdr(y);
-      cdr(y) = fill(cdr(x), s) ?: cdr(x);
+      cdr(y) = fill(cdr(x), s) ? 0: cdr(x);
       return Pop(c1);
    }
    if (y = fill(car(x), s)) {
       Push(c1,y);
       y = fill(cdr(x), s);
-      return cons(Pop(c1), y ?: cdr(x));
+      return cons(Pop(c1), y ? y: cdr(x));
    }
    if (y = fill(cdr(x), s))
       return cons(car(x), y);

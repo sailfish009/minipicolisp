@@ -681,10 +681,9 @@ any doText(any x) {
       return Nil;
    Save(c1);
    {
-      cell arg[length(x = cdr(x))];
-
-      for (n = 0;  isCell(x);  ++n, x = cdr(x))
-         Push(arg[n], EVAL(car(x)));
+     vec v(length(x = cdr(x)));
+     for (n = 0; isCell(x); ++n, x = cdr(x))
+       Push(v[n], EVAL(car(x)));
 
       putByte0(&i2, &w2, &nm2);
       do {
@@ -698,7 +697,7 @@ any doText(any x) {
             if ((c -= '1') > 8)
                c -= 7;
             if (n > c)
-               pack(data(arg[c]), &i2, &w2, &nm2, &c2);
+               pack(data(v[c]), &i2, &w2, &nm2, &c2);
          }
       } while (c = getByte(&i1, &w1, &nm1));
       nm2 = popSym(i2, w2, nm2, &c2);
@@ -987,7 +986,7 @@ any doDel(any ex) {
 
    x = cdr(ex),  Push(c1, EVAL(car(x)));
    x = cadr(x),  Push(c2, EVAL(x));
-   flg = !isNil(EVAL(cadddr(ex)));
+   flg = (be)(!isNil(EVAL(cadddr(ex))));
    NeedVar(ex,data(c2));
    CheckVar(ex,data(c2));
    x = val(data(c2));
@@ -1562,7 +1561,7 @@ any doMeta(any ex) {
 #define isUppc(c) ((c) >= 'A' && (c) <= 'Z')
 
 static inline be isLetterOrDigit(int c) {
-   return isLowc(c) || isUppc(c) || (c) >= '0' && (c) <= '9';
+   return (be)(isLowc(c) || isUppc(c) || (c) >= '0' && (c) <= '9');
 }
 
 static int toUpperCase(int c) {
