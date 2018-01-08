@@ -27,7 +27,7 @@ any __attribute__ ((__aligned__(2*WORD))) Ram[] = {
    #include "ram.d"
 };
 
-static bool Jam;
+static be Jam;
 static jmp_buf ErrRst;
 
 
@@ -38,7 +38,7 @@ void giveup(char *msg) {
 }
 
 void bye(int n) {
-   static bool b;
+   static be b;
 
    if (!b) {
       b = YES;
@@ -199,9 +199,9 @@ any circ(any x) {
 }
 
 /* Comparisons */
-bool equal(any x, any y) {
+be equal(any x, any y) {
    any a, b;
-   bool res;
+   be res;
 
    if (x == y)
       return YES;

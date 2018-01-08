@@ -391,7 +391,7 @@ any doType(any ex) {
    return Nil;
 }
 
-static bool isa(any ex, any cls, any x) {
+static be isa(any ex, any cls, any x) {
    any z;
 
    z = x = val(x);
@@ -787,13 +787,13 @@ any doNor(any x) {
 
 // (xor 'any 'any) -> flg
 any doXor(any x) {
-   bool f;
+   be f;
 
    x = cdr(x),  f = isNil(EVAL(car(x))),  x = cdr(x);
    return  f ^ isNil(EVAL(car(x)))?  T : Nil;
 }
 
-// (bool 'any) -> flg
+// (be 'any) -> flg
 any doBool(any x) {return isNil(EVAL(cadr(x)))? Nil : T;}
 
 // (not 'any) -> flg

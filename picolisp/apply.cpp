@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "pico.h"
 
-any apply(any ex, any foo, bool cf, int n, cell *p) {
+any apply(any ex, any foo, be cf, int n, cell *p) {
    while (!isNum(foo)) {
       if (isCell(foo)) {
          int i;

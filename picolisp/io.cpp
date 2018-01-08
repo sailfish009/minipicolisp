@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "pico.h"
 
-static any read0(bool);
+static any read0(be);
 
 static int StrI;
 static cell StrCell, *StrP;
@@ -207,7 +207,7 @@ static int skip(void) {
 }
 
 /* Test for escaped characters */
-static bool testEsc(void) {
+static be testEsc(void) {
    for (;;) {
       if (Chr < 0)
          return NO;
@@ -300,7 +300,7 @@ static any anonymous(any s) {
 }
 
 /* Read one expression */
-static any read0(bool top) {
+static any read0(be top) {
    int i;
    word w;
    any x, y;
@@ -611,7 +611,7 @@ any doTill(any ex) {
    }
 }
 
-static inline bool eol(void) {
+static inline be eol(void) {
    if (Chr < 0)
       return YES;
    if (Chr == '\n') {
@@ -658,7 +658,7 @@ any doLine(any x) {
    }
 }
 
-static any parse(any x, bool skp) {
+static any parse(any x, be skp) {
    int c;
    parseFrame *save, parser;
    void (*getSave)(void);

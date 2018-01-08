@@ -24,8 +24,7 @@ typedef unsigned long word;
 typedef unsigned char byte;
 typedef unsigned char *ptr;
 
-#undef bool
-typedef enum {NO,YES} bool;
+typedef enum {NO,YES} be;
 
 typedef struct cell {            // PicoLisp primary data type
    struct cell *car;
@@ -76,7 +75,7 @@ typedef struct stkEnv {
    parseFrame *parser;
    void (*get)(void);
    void (*put)(int);
-   bool brk;
+   be brk;
 } stkEnv;
 
 typedef struct catchFrame {
@@ -167,7 +166,7 @@ extern any Ram[];
 
 /* Prototypes */
 void *alloc(void*,size_t);
-any apply(any,any,bool,int,cell*);
+any apply(any,any,be,int,cell*);
 void argError(any,any) __attribute__ ((noreturn));
 void atomError(any,any) __attribute__ ((noreturn));
 void begString(void);
@@ -184,7 +183,7 @@ any consName(word,any);
 any consSym(any,word);
 void newline(void);
 any endString(void);
-bool equal(any,any);
+be equal(any,any);
 void err(any,any,char*,...) __attribute__ ((noreturn));
 any evExpr(any,any);
 any evList(any);
@@ -199,7 +198,7 @@ void getStdin(void);
 void giveup(char*) __attribute__ ((noreturn));
 void heapAlloc(void);
 any intern(any,any[2]);
-bool isBlank(any);
+be isBlank(any);
 any isIntern(any,any[2]);
 void lstError(any,any) __attribute__ ((noreturn));
 any load(any,int,any);

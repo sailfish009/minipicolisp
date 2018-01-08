@@ -28,7 +28,7 @@ any symToNum(any s, int scl, int sep, int ign) {
    unsigned c;
    int i;
    word w;
-   bool sign, frac;
+   be sign, frac;
    long n;
 
    if (!(c = getByte1(&i, &w, &s)))

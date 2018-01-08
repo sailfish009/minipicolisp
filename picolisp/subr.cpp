@@ -291,7 +291,7 @@ any doRange(any ex) {
    return Pop(c1);
 }
 
-// (full 'any) -> bool
+// (full 'any) -> be 
 any doFull(any x) {
    x = cdr(x);
    for (x = EVAL(car(x)); isCell(x); x = cdr(x))
@@ -450,7 +450,7 @@ any doAppend(any x) {
 // (delete 'any 'lst ['flg]) -> lst
 any doDelete(any ex) {
    any x, y, z;
-   bool flg;
+   be flg;
    cell c1, c2, c3;
 
    x = cdr(ex),  Push(c1, y = EVAL(car(x)));
@@ -489,7 +489,7 @@ any doDelete(any ex) {
 // (delq 'any 'lst ['flg]) -> lst
 any doDelq(any ex) {
    any x, y, z;
-   bool flg;
+   be flg;
    cell c1, c2, c3;
 
    x = cdr(ex),  Push(c1, y = EVAL(car(x)));
@@ -1252,7 +1252,7 @@ any doRank(any x) {
 }
 
 /* Pattern matching */
-bool match(any p, any d) {
+be match(any p, any d) {
    any x;
 
    for (;;) {
@@ -1347,7 +1347,7 @@ any doFill(any x) {
 /* Declarative Programming */
 cell *Penv, *Pnl;
 
-static bool unify(any n1, any x1, any n2, any x2) {
+static be unify(any n1, any x1, any n2, any x2) {
    any x, env;
 
 lookup1:

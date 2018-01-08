@@ -445,7 +445,7 @@ any mkSym(byte *s) {
 /* Make string */
 any mkStr(char *s) {return s && *s? mkSym((byte*)s) : Nil;}
 
-bool isBlank(any x) {
+be isBlank(any x) {
    int i, c;
    word w;
 
@@ -982,7 +982,7 @@ any doCut(any ex) {
 // (del 'any 'var ['flg]) -> lst
 any doDel(any ex) {
    any x, y;
-   bool flg;
+   be flg;
    cell c1, c2, c3;
 
    x = cdr(ex),  Push(c1, EVAL(car(x)));
@@ -1561,7 +1561,7 @@ any doMeta(any ex) {
 #define isLowc(c) ((c) >= 'a' && (c) <= 'z')
 #define isUppc(c) ((c) >= 'A' && (c) <= 'Z')
 
-static inline bool isLetterOrDigit(int c) {
+static inline be isLetterOrDigit(int c) {
    return isLowc(c) || isUppc(c) || (c) >= '0' && (c) <= '9';
 }
 
