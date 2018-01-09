@@ -295,16 +295,18 @@ static inline any getn(any x, any y) {
 }
 
 /* List length calculation */
+#if 1
+static inline int length(any x) {
+  int n = 0;
+  for (n = 0; isCell(x); x = cdr(x)) ++n;
+  return n;
+}
+#else
 static int n = 0;
-//static inline constexpr int length(any x) {
 static constexpr int length(any x) {
   return isCell(x) ? ++n, isCell(x = cdr(x)) : n;
-#if 0
-  int n = 0;
-  for (n = 0; isCell(x); x = cdr(x) ) ++n;
-  return n;
-#endif
 }
+#endif
 
 /* Membership */
 static inline any member(any x, any y) {
