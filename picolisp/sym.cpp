@@ -146,7 +146,7 @@ void putByte(int c, int *i, word *p, any *q, cell *cp) {
          Push(*cp, consSym(NULL,0));
          tail(data(*cp)) = *q = consName(*p, Zero);
       }
-      *p = c >> BITS - *i;
+      *p = c >> (BITS - *i);
       *i -= BITS;
    }
    *i += d;
